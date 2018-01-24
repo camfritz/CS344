@@ -19,7 +19,6 @@ void *my_malloc(int size) {
 
 	//scan for blocks in free list
 	do {
-		printf("%d\n", current->size);
 		if(current->size == size) {
 			if(current != head) {
 				mem = current + sizeof(free_list_node);
@@ -56,7 +55,6 @@ void *my_malloc(int size) {
 				newNode->size = current->size;
 				current->size = size;
 				head = newNode;
-				//printf("%d\n", current->size);
 				return mem;
 			}
 		}
@@ -71,7 +69,26 @@ void my_free(void *ptr) {
 }
 
 void print_free_list() {
+	int counter = 0;
+	long nd, addr, sz, nx;
+	free_list_node *current = head;
 
+	do {
+		nd = counter;
+		addr = current;
+		sz = current->size;
+		nx = current->next;
+		printf("=================FREE LIST==============\n");
+		printf("NODE # |   ADDRESS |   SIZE |   NEXT\n");
+		printf("%7d|  0x%x|%8d|    0x%x\n", nd, addr, sz, nx);
+		printf("========================================\n");
+
+		++counter;
+		if(current->next != NULL) {
+			current = current->next;
+		}
+
+	} while(current->next != NULL);
 }
 
 

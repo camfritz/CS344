@@ -10,7 +10,9 @@ THIS FILE IS FOR TESTING PURPOSES ONLY!!!!
 int main() {
 	// void *p;
 	// print_free_list();
-	double *i = (double *) my_malloc(3 * sizeof(double));
-	int *x = (int *) my_malloc(3 * sizeof(int));
+	double *i = (double *) my_malloc(100 * sizeof(double));
+	print_free_list();
+	int *j = (int *) my_malloc(100 * sizeof(int));
+	print_free_list();
 	// my_free(p);
 }
