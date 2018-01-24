@@ -87,6 +87,9 @@ void print_free_list() {
 	printf("NODE # |   ADDRESS |   SIZE |   NEXT\n");
 
 	do {
+		if(current == NULL) {
+			break;
+		}
 		nd = counter;
 		addr = current;
 		sz = current->size;
