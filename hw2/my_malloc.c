@@ -3,6 +3,20 @@
 free_list_node *head = NULL;
 
 void *my_malloc(int size) {
+	printf("my malloc: called with size: %d\n", size);
+	//some error checking on sizes
+	if(size < 0) {
+		fprintf(stderr, "Usage error: Size must be non-negative\n");
+		return NULL;
+	}
+	if(size > 2048) {
+		fprintf(stderr, "Usage error: Size cannot be greater than SIZE constant 2048\n");
+	}
+	if(SIZE > 2048) {
+		fprintf(stderr, "Header Error: SIZE constant greater than 2048\n");
+		return NULL;
+	}
+
 	free_list_node *previous = NULL;
 	free_list_node *current = NULL;
 	free_list_node *newNode = NULL;
@@ -24,6 +38,7 @@ void *my_malloc(int size) {
 				mem = current + sizeof(free_list_node);
 				current = current->next;
 				previous->next = current;
+				printf("Scanning free list...space found in free list\n");
 				return mem;
 			}
 			else {
@@ -32,6 +47,7 @@ void *my_malloc(int size) {
 				previous = current;
 				current = current->next;
 				head = current;
+				printf("Scanning free list...space found in free list\n");
 				return mem;
 			}
 		}
@@ -45,6 +61,7 @@ void *my_malloc(int size) {
 				newNode->size = current->size;
 				current->size = size;
 				previous->next = newNode;
+				printf("Scanning free list...space found in free list\n");
 				return mem;
 			}
 			else {
@@ -55,6 +72,7 @@ void *my_malloc(int size) {
 				newNode->size = current->size;
 				current->size = size;
 				head = newNode;
+				printf("Scanning free list...space found in free list\n");
 				return mem;
 			}
 		}
@@ -63,7 +81,8 @@ void *my_malloc(int size) {
 	} while(current != NULL);
 
 	//expand heap if no memory available for allocation
-	printf("CALLING NULL\n");
+	printf("Scanning free list...no space in free list\n");
+	printf("Expanding heap with sbrk(), recursively calling my malloc()\n");
 	newNode = (free_list_node *) sbrk(SIZE);
 	current = newNode;
 	current->size = SIZE - 16;
