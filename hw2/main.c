@@ -12,7 +12,7 @@ int main() {
 	// print_free_list();
 	double *i = (double *) my_malloc(100 * sizeof(double));
 	print_free_list();
-	int *j = (int *) my_malloc(100 * sizeof(int));
+	int *j = (int *) my_malloc(50 * sizeof(int));
 	print_free_list();
 	// my_free(p);
 }

@@ -60,7 +60,17 @@ void *my_malloc(int size) {
 		}
 		previous = current;
 		current = current->next;
-	} while(current->next != NULL);
+	} while(current != NULL);
+
+	//expand heap if no memory available for allocation
+	printf("CALLING NULL\n");
+	newNode = (free_list_node *) sbrk(SIZE);
+	current = newNode;
+	current->size = SIZE - 16;
+	current->next = NULL;
+	previous->next = current;
+	mem = (void *) my_malloc(size);
+	return mem;
 
 }
 
@@ -73,22 +83,26 @@ void print_free_list() {
 	long nd, addr, sz, nx;
 	free_list_node *current = head;
 
+	printf("===============FREE LIST==============\n");
+	printf("NODE # |   ADDRESS |   SIZE |   NEXT\n");
+
 	do {
 		nd = counter;
 		addr = current;
 		sz = current->size;
 		nx = current->next;
-		printf("=================FREE LIST==============\n");
-		printf("NODE # |   ADDRESS |   SIZE |   NEXT\n");
 		printf("%7d|  0x%x|%8d|    0x%x\n", nd, addr, sz, nx);
-		printf("========================================\n");
 
 		++counter;
 		if(current->next != NULL) {
 			current = current->next;
 		}
+		else {
+			break;
+		}
 
-	} while(current->next != NULL);
+	} while(1);
+	printf("======================================\n");
 }
 
 
