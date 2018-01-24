@@ -11,9 +11,6 @@ int main() {
 	// void *p;
 	// print_free_list();
 	double *i = (double *) my_malloc(3 * sizeof(double));
-	for(int s = 0; s < 4; s++) {
-		i[s] = s;
-		printf("%lf\n", i[s]);
-	}
+	int *x = (int *) my_malloc(3 * sizeof(int));
 	// my_free(p);
 }

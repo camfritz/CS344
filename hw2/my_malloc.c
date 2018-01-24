@@ -14,33 +14,12 @@ void *my_malloc(int size) {
 		current->next = NULL;
 		head = current;
 	}
-	//Scan for blocks on the free list
-	//begin with initial head node condition
 
-	// if(head->size == SIZE - 16) {
-	// 	mem = head + 17;
-	// 	head->size = head->size - size;
-	// 	printf("%d\n", head->size);
-	// 	return mem;
-	// }
+	current = head;
 
-	// do {
-	// 	printf("%s\n", "CALLING");
-	// 	if(head->size == size) {
-	// 		mem = head + sizeof(free_list_node);
-	// 		head = head->next;
-	// 		return mem;
-	// 	}
-	// 	else if(head->size > size) {
-	// 		mem = head + sizeof(free_list_node);
-	// 		head = head->next;
-	// 		//update sizes code
-	// 	}
-	// 	head = head->next;
-	// } while(head->next != NULL);
-
+	//scan for blocks in free list
 	do {
-		printf("%s\n", "CALLING");
+		printf("%d\n", current->size);
 		if(current->size == size) {
 			if(current != head) {
 				mem = current + sizeof(free_list_node);
@@ -58,11 +37,14 @@ void *my_malloc(int size) {
 			}
 		}
 		else if(current->size > size) {
+
 			if(current != head) {
 				mem = current + sizeof(free_list_node);
 				newNode = current + sizeof(free_list_node) + size;
 				current->size = current->size - size - sizeof(free_list_node);
 				newNode->next = current->next;
+				newNode->size = current->size;
+				current->size = size;
 				previous->next = newNode;
 				return mem;
 			}
@@ -71,7 +53,10 @@ void *my_malloc(int size) {
 				newNode = current + sizeof(free_list_node) + size;
 				current->size = current->size - size - sizeof(free_list_node);
 				newNode->next = current->next;
-				head = current;
+				newNode->size = current->size;
+				current->size = size;
+				head = newNode;
+				//printf("%d\n", current->size);
 				return mem;
 			}
 		}
