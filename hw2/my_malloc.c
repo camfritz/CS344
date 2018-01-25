@@ -96,8 +96,9 @@ void *my_malloc(int size) {
 void my_free(void *ptr) {
 	free_list_node *freeNode = (free_list_node *) ptr - sizeof(free_list_node);
 	free_list_node *current = head;
+	int freeSize = ((int*)freeNode)[0];
 
-	fprintf(stderr, "my_free: called with 0x%x, size = %d\n", ptr, *freeNode);
+	fprintf(stderr, "my_free: called with 0x%x, size = %d\n", (unsigned int) ptr, freeSize);
 
 	//find end of free list
 	do {
@@ -112,12 +113,12 @@ void my_free(void *ptr) {
 	//append freed memory to free list
 	current->next = freeNode;
 	freeNode->next = NULL;
-	printf("my_free: next = 0x%x\n", freeNode->next);
+	printf("my_free: next = 0x%x\n", (unsigned int) freeNode->next);
 }
 
 void print_free_list() {
 	int counter = 0;
-	long nd, addr, sz, nx;
+	int nd, addr, sz, nx;
 	free_list_node *current = head;
 
 	printf("===============FREE LIST==============\n");
@@ -128,9 +129,9 @@ void print_free_list() {
 			break;
 		}
 		nd = counter;
-		addr = current;
+		addr = (long) current;
 		sz = current->size;
-		nx = current->next;
+		nx = (long) current->next;
 		printf("%7d|  0x%x|%8d|    0x%x\n", nd, addr, sz, nx);
 
 		++counter;
@@ -144,5 +145,3 @@ void print_free_list() {
 	} while(1);
 	printf("======================================\n");
 }
-
-
