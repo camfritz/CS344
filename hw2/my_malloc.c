@@ -68,7 +68,7 @@ void *my_malloc(int size) {
 
 			if(current != head) {
 				mem = current + sizeof(free_list_node);
-				newNode = ((free_list_node*) current + sizeof(free_list_node) + size);
+				newNode = (free_list_node*) ((unsigned long) current + sizeof(free_list_node) + size);
 				current->size = current->size - size - sizeof(free_list_node);
 				newNode->next = current->next;
 				newNode->size = current->size;
@@ -83,7 +83,7 @@ void *my_malloc(int size) {
 			}
 			else {
 				mem = current + sizeof(free_list_node);
-				newNode = ((free_list_node*) (current + sizeof(free_list_node) + size));
+				newNode = (free_list_node*) ((unsigned long) current + sizeof(free_list_node) + size);
 				current->size = (unsigned int) current->size - size - sizeof(free_list_node);
 				newNode->next = current->next;
 				newNode->size = (unsigned int) current->size;

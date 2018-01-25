@@ -9,6 +9,8 @@ THIS FILE IS FOR TESTING PURPOSES ONLY!!!!
 
 int main() {
 	print_free_list();
+	char *l = (char*) my_malloc(2032*sizeof(char));
+	print_free_list();
 	double *i = (double *) my_malloc(100 * sizeof(double));
 	print_free_list();
 	int *j = (int *) my_malloc(100 * sizeof(int));
