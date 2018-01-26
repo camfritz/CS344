@@ -17,7 +17,7 @@ void *my_malloc(int size) {
 		fprintf(stderr, "Header Error: SIZE constant greater than 2048\n");
 		return NULL;
 	}
-
+	//initialize node and memory block pointers.
 	free_list_node *previous = NULL;
 	free_list_node *current = NULL;
 	free_list_node *newNode = NULL;
@@ -37,9 +37,10 @@ void *my_malloc(int size) {
 
 	current = head;
 
-	//scan for blocks in free list
+	//scan for blocks in free list, update as needed
 	do {
-		if(current->size == size) {
+		//check cases where splitting is not required
+		if(current->size == size || (current->size > size && (current->size < (size + sizeof(free_list_node))))) {
 			if(current != head) {
 				mem = current + sizeof(free_list_node);
 				current = current->next;
@@ -64,8 +65,8 @@ void *my_malloc(int size) {
 				return mem;
 			}
 		}
-		else if(current->size > size) {
-
+		//split the node if necessary
+		else if(current->size >= (size + 16)) {
 			if(current != head) {
 				mem = current + sizeof(free_list_node);
 				newNode = (free_list_node*) ((unsigned long) current + sizeof(free_list_node) + size);
@@ -82,6 +83,7 @@ void *my_malloc(int size) {
 				return mem;
 			}
 			else {
+				//handle head edge case
 				mem = current + sizeof(free_list_node);
 				newNode = (free_list_node*) ((unsigned long) current + sizeof(free_list_node) + size);
 				current->size = (unsigned int) current->size - size - sizeof(free_list_node);
@@ -109,6 +111,7 @@ void *my_malloc(int size) {
 		fprintf(stderr, "ERROR: bad sbrk()\n");
 		exit(1);
 	}
+	//update free list, recursively call my_malloc to return new memory.
 	current = newNode;
 	current->size = SIZE - 16;
 	current->next = NULL;

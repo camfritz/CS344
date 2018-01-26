@@ -6,21 +6,22 @@ THIS FILE IS FOR TESTING PURPOSES ONLY!!!!
 
 
 #include "my_malloc.h"
+#include <time.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 int main() {
-	print_free_list();
-	char *l = (char*) my_malloc(2032*sizeof(char));
-	print_free_list();
-	double *i = (double *) my_malloc(100 * sizeof(double));
-	print_free_list();
-	int *j = (int *) my_malloc(100 * sizeof(int));
-	print_free_list();
-	char *k = (char *) my_malloc(1000 * sizeof(char));
-	print_free_list();
-	my_free(k);
-	print_free_list();
-	my_free(j);
-	print_free_list();
-	my_free(i);
-	print_free_list();
+	int r;
+	int c;
+	int *l = (int*) my_malloc(508 * sizeof(int));
+	srand(time(NULL));
+	for(int i = 0; i < 5000; i++) {
+		r = rand() % 508;
+		int *p = (int*) my_malloc(r * sizeof(int));
+		c = rand() % 2;
+		if(c == 1) {
+			my_free(p);
+		}
+		print_free_list();
+	}
 }
