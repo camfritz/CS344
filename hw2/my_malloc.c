@@ -126,6 +126,9 @@ void *my_malloc(int size) {
 }
 
 void my_free(void *ptr) {
+	if(ptr == NULL) {
+		return;
+	}
 	free_list_node *freeNode = (free_list_node *) ptr - sizeof(free_list_node);
 	free_list_node *current = head;
 	int freeSize = ((int*)freeNode)[0];

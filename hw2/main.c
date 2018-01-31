@@ -16,7 +16,7 @@ int main() {
 	int *l = (int*) my_malloc(508 * sizeof(int));
 	srand(time(NULL));
 	for(int i = 0; i < 5000; i++) {
-		r = rand() % 508;
+		r = rand() % 510;
 		int *p = (int*) my_malloc(r * sizeof(int));
 		c = rand() % 2;
 		if(c == 1) {
