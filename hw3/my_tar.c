@@ -3,28 +3,13 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <string.h>
-// void my_tar(char option, int args) {
-// 	int fileArgumentCount = args - 2;
-// 	FILE* filep = (FILE*) malloc(fileArgumentCount * sizeof(FILE*));
-
-// 	switch (option) {
-// 		case 'c':
-// 		printf("Executing with 'C'\n");
-// 		while(fileArgumentCount > 0) {
-// 			filep =
-// 		}
-// 		break;
-// 		default:
-// 		printf("Executing with 'X'\n");
-// 		break;
-// 	}
-// }
 
 int main(int argc, char **argv) {
 	struct stat fileInfo;
-	int fileArgumentCount;
+	int fileArgumentCount, scanLoop;
 	FILE* filep;
-	char c;
+	char *fileBuffer, str[10000];
+	long fileSize;
 	if(argc < 2) {
 		fprintf(stderr, "Usage: ./my_tar -c file1 [file2 ...] or ./my_tar -x\n");
 		exit(1);
@@ -43,27 +28,82 @@ int main(int argc, char **argv) {
 		while(fileArgumentCount > 0) {
 			//get file stats
 			stat(argv[fileArgumentCount + 1], &fileInfo);
-			//print file name
-			fwrite(argv[fileArgumentCount + 1], strlen(argv[fileArgumentCount + 1]), 1, stdout);
-			fprintf(stdout, " ");
-			//print file stats
-			fwrite(&fileInfo, sizeof(struct stat), 1, stdout);
-			fprintf(stdout, " ");
-			//print file contents
-			if(!(filep = fopen(argv[fileArgumentCount + 1], "r"))) {
-				perror("ERROR: ");
-				exit(1);
+			if(!(S_ISREG(fileInfo.st_mode))) {
+				fprintf(stderr, "Not a regular file, skipping...\n");
+				--fileArgumentCount;
 			}
-			do {
-				c = fgetc(filep);
-				fprintf(stdout, "%c", c);
-			} while(c != EOF);
-			fprintf(stdout, " ");
-			--fileArgumentCount;
+			else {
+			//print file name
+				fwrite(argv[fileArgumentCount + 1], strlen(argv[fileArgumentCount + 1]), 1, stdout);
+				fprintf(stdout, "%c", ' ');
+			//print file stats
+				fwrite(&fileInfo, sizeof(struct stat), 1, stdout);
+				fprintf(stdout, "%c", ' ');
+			//print file contents
+				if(!(filep = fopen(argv[fileArgumentCount + 1], "rb"))) {
+					perror("ERROR: ");
+					exit(1);
+				}
+				//fprintf(stdout, "*****BOF*****\n");
+				// do {
+				// 	fread(&c, sizeof(char), 1, filep);
+				// 	//c = fgetc(filep);
+				// 	fwrite(&c, sizeof(char), 1, stdout);
+				// 	if(filep != NULL) {
+				// 		++filep;
+				// 	}
+				// } while(c != EOF);
+
+				//obtain size of file
+				fseek(filep, 0, SEEK_END);
+				fileSize = ftell(filep);
+				rewind(filep);
+
+				//allocate memory for file
+				fileBuffer = (char *) malloc(fileSize * sizeof(char));
+				if(fileBuffer == NULL) {
+					perror("ERROR: ");
+					exit(1);
+				}
+
+				//copy file into buffer
+				size_t copyCheck = fread(fileBuffer, 1, fileSize, filep);
+				if(copyCheck != fileSize) {
+					perror("ERROR: ");
+					exit(1);
+				}
+
+				fwrite(fileBuffer, 1, fileSize, stdout);
+
+				fprintf(stdout, "%c", ' ');
+				--fileArgumentCount;
+				fclose(filep);
+				free(fileBuffer);
+			}
 		}
-		// my_tar('c', argc);
 	}
+
+
 	else {
-		// my_tar('x', 0);
+		scanLoop = 3;
+		while(fscanf(stdin, "%s", str) != EOF) {
+			switch(scanLoop) {
+				case 3:
+				filep = fopen(str, "w+b");
+				--scanLoop;
+				break;
+
+				case 2:
+				fread(&fileInfo, sizeof(struct stat), 1, stdin);
+				printf("%lld\n", fileInfo.st_size);
+				--scanLoop;
+				break;
+
+				case 1:
+				fwrite(stdin, strlen(str), 1, filep);
+				break;
+			}
+		}
+		fclose(filep);
 	}
 }
