@@ -35,10 +35,10 @@ int main(int argc, char **argv) {
 			else {
 			//print file name
 				fwrite(argv[fileArgumentCount + 1], strlen(argv[fileArgumentCount + 1]), 1, stdout);
-				fprintf(stdout, "%c", ' ');
+				fprintf(stdout, "%c", '\n');
 			//print file stats
-				fwrite(&fileInfo, sizeof(struct stat), 1, stdout);
-				fprintf(stdout, "%c", ' ');
+				fprintf(stdout, "%lu", fileInfo.st_size);
+				fprintf(stdout, "%c", '\n');
 			//print file contents
 				if(!(filep = fopen(argv[fileArgumentCount + 1], "rb"))) {
 					perror("ERROR: ");
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 
 				fwrite(fileBuffer, 1, fileSize, stdout);
 
-				fprintf(stdout, "%c", ' ');
+				fprintf(stdout, "%c", '\n');
 				--fileArgumentCount;
 				fclose(filep);
 				free(fileBuffer);
@@ -104,9 +104,9 @@ int main(int argc, char **argv) {
 		//iterate through buffer
 
 		//get name, create file
-		int i;
+		int i, byteSz;
 		for(i = 0; i < fileSize; i++) {
-			if(fileBuffer[i] != ' ') {
+			if(fileBuffer[i] != '\n' && scanLoop != 1) {
 				readIn[readInCounter] = fileBuffer[i];
 				++readInCounter;
 			}
@@ -123,62 +123,30 @@ int main(int argc, char **argv) {
 					break;
 
 					case 2:
-					for(int j = 0; j < sizeof(struct stat); j++) {
-						++i;
-						readIn[readInCounter] = fileBuffer[i];
-					}
-					printf("%lu\n", sizeof(struct stat));
+					byteSz = atoi(readIn);
 					readInCounter = 0;
 					readIn[readInCounter] = '\0';
 					--scanLoop;
 					break;
 
 					case 1:
-					fwrite(readIn, strlen(readIn), 1, filep);
+					for(int j = 0; j < byteSz; j++) {
+						readIn[j] = fileBuffer[i];
+						//fprintf(stderr, "%c", fileBuffer[i]);
+						++i;
+					}
+					fwrite(readIn, byteSz, 1, filep);
 					readInCounter = 0;
 					readIn[readInCounter] = '\0';
-					--scanLoop;
+					scanLoop = 3;
 					break;
 				}
 
 			}
 		}
-		fwrite(fileBuffer, 1, fileSize, stdout);
+		//fwrite(fileBuffer, 1, fileSize, stdout);
 		fclose(filep);
 		free(fileBuffer);
 
 	}
 }
-
-/*test code
-fread(&temp, sizeof(struct stat), 1, stdin);
-*/
-
-/*
-	else {
-		struct stat temp;
-		scanLoop = 3;
-		while(scanf("%s", str) != EOF) {
-			switch(scanLoop) {
-				case 3:
-				filep = fopen(str, "w+b");
-				//while ((getchar()) != '\n');
-				--scanLoop;
-				break;
-
-				case 2:
-				fread(&temp, sizeof(struct stat), 1, stdin);
-				// fread(&fileInfo, sizeof(struct stat), 1, stdin);
-				printf("******FILE SIZE IS******: %lld\n", temp.st_size);
-				fwrite(&temp, sizeof(struct stat), 1, stdout);
-				--scanLoop;
-				break;
-
-				case 1:
-				//fwrite(stdin, strlen(str), 1, stdout);
-				break;
-			}
-		}
-		fclose(filep);
-	}
-	*/
