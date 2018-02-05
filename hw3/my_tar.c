@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
 		fileArgumentCount = argc - 2;
 		while(fileArgumentCount > 0) {
 			//get file stats
-			stat(argv[fileArgumentCount + 1], &fileInfo);
+			lstat(argv[fileArgumentCount + 1], &fileInfo);
 			if(!(S_ISREG(fileInfo.st_mode))) {
 				fprintf(stderr, "Not a regular file, skipping...\n");
 				--fileArgumentCount;
@@ -111,43 +111,65 @@ int main(int argc, char **argv) {
 				++readInCounter;
 			}
 			else {
-				switch(scanLoop) {
-					case 3:
-					if(!(filep = fopen(readIn, "w+b"))) {
-						perror("ERROR: ");
-						exit(1);
-					}
-					readInCounter = 0;
-					readIn[readInCounter] = '\0';
-					--scanLoop;
-					break;
-
-					case 2:
-					for(int j = 0; j < sizeof(struct stat); j++) {
-						++i;
-						readIn[readInCounter] = fileBuffer[i];
-					}
-					printf("%lu\n", sizeof(struct stat));
-					readInCounter = 0;
-					readIn[readInCounter] = '\0';
-					--scanLoop;
-					break;
-
-					case 1:
-					fwrite(readIn, strlen(readIn), 1, filep);
-					readInCounter = 0;
-					readIn[readInCounter] = '\0';
-					--scanLoop;
+				if(readIn[0] == '\0') {
 					break;
 				}
 
-			}
-		}
-		fwrite(fileBuffer, 1, fileSize, stdout);
-		fclose(filep);
-		free(fileBuffer);
+				if(!(filep = fopen(readIn, "w+b"))) {
+					perror("ERROR: ");
+					exit(1);
+				}
+				readInCounter = 0;
+				readIn[readInCounter] = '\0';
 
+				for(int j = 0; j < sizeof(struct stat); j++) {
+					++i;
+					readIn[j] = fileBuffer[i];
+				}
+				memcpy(&temp, readIn, sizeof(struct stat));
+				readInCounter = 0;
+				readIn[readInCounter] = '\0';
+
+				++i;
+				for(int j = 0; j < temp.st_size; j++) {
+					++i;
+					readIn[j] = fileBuffer[i];
+					// fprintf(stderr, "%c\n", fileBuffer[j]);
+				}
+				fwrite(readIn, temp.st_size - 1, 1, filep);
+				readInCounter = 0;
+				readIn[readInCounter] = '\0';
+
+				fclose(filep);
+				//++i;
+				// if((fileSize - i) < sizeof(struct stat)) {
+				// 	break;
+				// }
+
+				//fprintf(stderr, "%lld\n", temp.st_size);
+				//fprintf(stderr, "%s\n", readIn);
+
+					// case 2:
+					// fread(&temp, sizeof(struct stat), 1, readIn);
+					// readInCounter = 0;
+					// readIn[readInCounter] = '\0';
+					// --scanLoop;
+					// break;
+
+					// case 1:
+					// fwrite(readIn, temp.st_size, 1, filep);
+					// readInCounter = 0;
+					// readIn[readInCounter] = '\0';
+					// --scanLoop;
+					// break;
+			}
+
+		}
+		//fwrite(fileBuffer, 1, fileSize, stdout);
+		free(fileBuffer);
 	}
+
+
 }
 
 /*test code

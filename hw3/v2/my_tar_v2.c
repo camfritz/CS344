@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
 				fwrite(argv[fileArgumentCount + 1], strlen(argv[fileArgumentCount + 1]), 1, stdout);
 				fprintf(stdout, "%c", '\n');
 			//print file stats
-				fprintf(stdout, "%lu", fileInfo.st_size);
+				fprintf(stdout, "%lld", fileInfo.st_size);
 				fprintf(stdout, "%c", '\n');
 			//print file contents
 				if(!(filep = fopen(argv[fileArgumentCount + 1], "rb"))) {
@@ -138,6 +138,7 @@ int main(int argc, char **argv) {
 					fwrite(readIn, byteSz, 1, filep);
 					readInCounter = 0;
 					readIn[readInCounter] = '\0';
+					fprintf(stderr, "THE FILE NAME IS: %s", readIn);
 					scanLoop = 3;
 					break;
 				}
