@@ -1,2 +1,2 @@
 all:
-	gcc -o my_tar my_tar.c
+	gcc -o ./my_tar my_tar.c
