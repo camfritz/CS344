@@ -49,10 +49,11 @@ void execCmd(vector <char *> &parsed) {
 				break;
 			}
 		}
+
 		else if(strcmp(args[i], ">") == 0) {
 			isRegular = false;
 			temp = (char **) malloc(sizeof(char*) * (command.size() + 1));
-			fdOut = open(args[i + 1], O_CREAT|O_WRONLY, 0777);
+			fdOut = open(args[i + 1], O_CREAT|O_WRONLY|O_TRUNC, 0777);
 			switch(fork()) {
 				case 0:
 				for(int i = 0; i < command.size(); i++) {
@@ -71,9 +72,65 @@ void execCmd(vector <char *> &parsed) {
 				//printf("******FREEING******\n");
 				free(temp);
 				close(fdOut);
+				i++;
 				break;
 			}
 		}
+
+		else if(strcmp(args[i], ">>") == 0) {
+			isRegular = false;
+			temp = (char **) malloc(sizeof(char*) * (command.size() + 1));
+			fdOut = open(args[i + 1], O_CREAT|O_WRONLY|O_APPEND, 0777);
+			switch(fork()) {
+				case 0:
+				for(int i = 0; i < command.size(); i++) {
+					temp[i] = command[i];
+				}
+				temp[command.size()] = NULL;
+				command.clear();
+
+				// fdOut = open(args[i + 1], O_CREAT|O_WRONLY, 0777);
+				dup2(fdOut, 1);
+				execvp(temp[0], temp);
+
+				default:
+				wait(NULL);
+				currentCount = 0;
+				//printf("******FREEING******\n");
+				free(temp);
+				close(fdOut);
+				i++;
+				break;
+			}
+		}
+
+		else if(strcmp(args[i], "2>") == 0) {
+			isRegular = false;
+			temp = (char **) malloc(sizeof(char*) * (command.size() + 1));
+			fdOut = open(args[i + 1], O_CREAT|O_WRONLY|O_TRUNC, 0777);
+			switch(fork()) {
+				case 0:
+				for(int i = 0; i < command.size(); i++) {
+					temp[i] = command[i];
+				}
+				temp[command.size()] = NULL;
+				command.clear();
+
+				// fdOut = open(args[i + 1], O_CREAT|O_WRONLY, 0777);
+				dup2(fdOut, 2);
+				execvp(temp[0], temp);
+
+				default:
+				wait(NULL);
+				currentCount = 0;
+				//printf("******FREEING******\n");
+				free(temp);
+				close(fdOut);
+				i++;
+				break;
+			}
+		}
+
 		else {
 			//printf("******PUSHING******\n");
 			command.push_back(args[i]);
