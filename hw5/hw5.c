@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
 	char *buffer[100];
 
 
-	if(argc < 3 || argc > 4) {
+	if(argc < 3) {
 		fprintf(stderr, "usage: ./hw5 num_threads option [arg]\n");
 		exit(1);
 	}
@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
 			}
 			else if(strcmp(argv[i], "-C") == 0) {
 				adjustContrast = true;
-				if(argc != 4) {
+				if(argc < 4) {
 					fprintf(stderr, "usage: ./hw5 num_threads option [arg]\n");
 					exit(1);
 				}
@@ -133,11 +133,10 @@ int main(int argc, char **argv) {
 		else if(i == 2) {
 			height = atoi(buffer);
 		}
-		else if(i == 3){
+		else if(i == 3) {
 			maxPixelValue = atoi(buffer);
 		}
 	}
-
 
 //allocate 3D pixel array
 	int r, c, p;
@@ -167,7 +166,35 @@ int main(int argc, char **argv) {
 	fprintf(stdout, "%d\n", maxPixelValue);
 	for(r = 0; r < height; r++) {
 		for(c = 0; c < width; c++) {
-			fprintf(stdout, "%d %d %d\n", pixels[r][c][0], pixels[r][c][1], pixels[r][c][2]);
+			if(Invert == true) {
+				fprintf(stdout, "%d %d %d\n", maxPixelValue - pixels[r][c][0], maxPixelValue - pixels[r][c][1], maxPixelValue - pixels[r][c][2]);
+			}
+			else if(keepRed == true) {
+				fprintf(stdout, "%d %d %d\n", maxPixelValue - pixels[r][c][0], 0, 0);
+			}
+			else if(keepGreen == true) {
+				fprintf(stdout, "%d %d %d\n", 0, maxPixelValue - pixels[r][c][1], 0);
+			}
+			else if(keepBlue == true) {
+				fprintf(stdout, "%d %d %d\n", 0, 0, maxPixelValue - pixels[r][c][2]);
+			}
+			else if(adjustContrast == true) {
+				for(i = 0; i < 3; i++) {
+					if(pixels[r][c][i] <= (maxPixelValue / 2)) {
+						pixels[r][c][i] -= (maxPixelValue * contrastPercent);
+					}
+					else {
+						pixels[r][c][i] += (maxPixelValue * contrastPercent);
+					}
+				}
+				fprintf(stdout, "%d %d %d\n", pixels[r][c][0], pixels[r][c][1], pixels[r][c][2]);
+			}
+			else if(rotateLeft == true) {
+				//Rotate 90 degrees left
+			}
+			else if(rotateRight == true) {
+				//Rotate 90 degrees right
+			}
 		}
 	}
 }
