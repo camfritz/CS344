@@ -77,53 +77,6 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	//int scanCounter = 0;
-	//int r, c;
-	// while(scanf("%s", buffer) != EOF) {
-	// 	if(scanCounter == 1) {
-	// 		width = atoi(buffer);
-	// 		// fprintf(stderr, "WIDTH: %d\n", width);
-	// 	}
-	// 	else if(scanCounter == 2) {
-	// 		height = atoi(buffer);
-	// 		// fprintf(stderr, "HEIGHT: %d\n", height);
-	// 		//allocate 3D pixel array
-	// 		pixels = (int***) malloc(sizeof(int**) * height);
-	// 		for(r = 0; r < height; r++) {
-	// 			pixels[r] = (int**) malloc(sizeof(int*) * width);
-	// 			for(c = 0; c < width; c++) {
-	// 				pixels[r][c] = (int*) malloc(sizeof(int) * 3);
-	// 			}
-	// 		}
-	// 	}
-	// 	else if(scanCounter == 3) {
-	// 		maxPixelValue = atoi(buffer);
-	// 		r = 0;
-	// 		c = 0;
-	// 	}
-	// 	else if(scanCounter > 3) {
-	// 		if(scanCounter % 3 == 1) {
-	// 			pixels[r][c][0] = atoi(buffer);
-	// 		}
-	// 		else if(scanCounter % 3 == 2) {
-	// 			pixels[r][c][1] = atoi(buffer);
-	// 		}
-	// 		else if(scanCounter % 3 == 0) {
-	// 			pixels[r][c][2] = atoi(buffer);
-	// 			if(c < width) {
-	// 				c += 1;
-	// 			}
-	// 			else {
-	// 				if(r < height) {
-	// 					r += 1;
-	// 					c = 0;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// 	++scanCounter;
-	// }
-
 	//get file width, height, max pixel values
 	for(i = 0; i < 4; i++) {
 		scanf("%s", buffer);
@@ -159,10 +112,30 @@ int main(int argc, char **argv) {
 		}
 	}
 
+
+//allocate new array for transformed image
+	int ***newImage;
+	int newHeight = width;
+	int newWidth = height;
+	newImage = (int***) malloc(sizeof(int**) * newHeight);
+	for(r = 0; r < newHeight; r++) {
+		newImage[r] = (int**) malloc(sizeof(int*) * newWidth);
+		for(c = 0; c < newWidth; c++) {
+			newImage[r][c] = (int*) malloc(sizeof(int) * 3);
+		}
+	}
+
+	//perform pixel operations
 	r = 0;
 	c = 0;
+
 	fprintf(stdout, "P3\n");
-	fprintf(stdout, "%d %d\n", width, height);
+	if(rotateLeft == true || rotateRight == true) {
+		fprintf(stdout, "%d %d\n", newWidth, newHeight);
+	}
+	else {
+		fprintf(stdout, "%d %d\n", width, height);
+	}
 	fprintf(stdout, "%d\n", maxPixelValue);
 	for(r = 0; r < height; r++) {
 		for(c = 0; c < width; c++) {
@@ -191,9 +164,23 @@ int main(int argc, char **argv) {
 			}
 			else if(rotateLeft == true) {
 				//Rotate 90 degrees left
+				for(int i = 0; i < 3; i++) {
+					newImage[width - c - 1][r][i] = pixels[r][c][i];
+				}
 			}
 			else if(rotateRight == true) {
 				//Rotate 90 degrees right
+				for(int i = 0; i < 3; i++) {
+					newImage[c][height - r - 1][i] = pixels[r][c][i];
+				}
+			}
+		}
+	}
+
+	if(rotateLeft == true || rotateRight == true) {
+		for(r = 0; r < newHeight; r++) {
+			for(c = 0; c < newWidth; c++) {
+				fprintf(stdout, "%d %d %d\n", newImage[r][c][0], newImage[r][c][1], newImage[r][c][2]);
 			}
 		}
 	}
