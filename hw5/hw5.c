@@ -3,21 +3,23 @@
 #include <string.h>
 #include <math.h>
 #include <stdbool.h>
+#include <pthread.h>
+
+int numThreads;
+int r, c, p;
+float contrastPercent;
+bool Invert = false;
+bool rotateRight = false;
+bool rotateLeft = false;
+bool keepRed = false;
+bool keepGreen = false;
+bool keepBlue = false;
+bool adjustContrast = false;
+
+int width, height, maxPixelValue, i, ***pixels;
+char *buffer[100];
 
 int main(int argc, char **argv) {
-	int numThreads;
-	float contrastPercent;
-	bool Invert = false;
-	bool rotateRight = false;
-	bool rotateLeft = false;
-	bool keepRed = false;
-	bool keepGreen = false;
-	bool keepBlue = false;
-	bool adjustContrast = false;
-
-	int width, height, maxPixelValue, i, ***pixels;
-	char *buffer[100];
-
 
 	if(argc < 3) {
 		fprintf(stderr, "usage: ./hw5 num_threads option [arg]\n");
@@ -92,7 +94,6 @@ int main(int argc, char **argv) {
 	}
 
 //allocate 3D pixel array
-	int r, c, p;
 	pixels = (int***) malloc(sizeof(int**) * height);
 	for(r = 0; r < height; r++) {
 		pixels[r] = (int**) malloc(sizeof(int*) * width);
