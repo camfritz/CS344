@@ -19,6 +19,7 @@ bool adjustContrast = false;
 int width, height, maxPixelValue, i, j, ***pixels, ***newImage, newHeight, newWidth;
 char *buffer[100];
 
+//struct for storing start and end rows for thread processing
 typedef struct segment {
 	int start;
 	int end;
@@ -106,6 +107,7 @@ void *transformContrast(void *rows) {
 
 void *transformLeft(void *rows) {
 	struct segment *args = rows;
+	fprintf(stderr, "START: %d, END: %d\n", args->start, args->end);
 	for(r = args->start; r < args->end; r++) {
 		for(c = 0; c < width; c++) {
 			for(i = 0; i < 3; i++) {
@@ -117,17 +119,38 @@ void *transformLeft(void *rows) {
 
 void *transformRight(void *rows) {
 	struct segment *args = rows;
+	fprintf(stderr, "START: %d, END: %d\n", args->start, args->end);
 	for(r = args->start; r < args->end; r++) {
 		for(c = 0; c < width; c++) {
 			for(i = 0; i < 3; i++) {
-				newImage[c][width - r - 1][i] = pixels[r][c][i];
+				newImage[c][newWidth - r - 1][i] = pixels[r][c][i];
 			}
 		}
 	}
 }
 
-int main(int argc, char **argv) {
+void freeMem() {
+	for(r = 0; r < height; r++) {
+		free(pixels[r]);
+		for(c = 0; c < width; c++) {
+			free(pixels[r][c]);
+		}
+	}
+	free(pixels);
 
+	if(rotateRight == true || rotateLeft == true) {
+		for(r = 0; r < newHeight; r++) {
+			free(newImage[r]);
+			for(c = 0; c < newWidth; c++) {
+				free(newImage[r][c]);
+			}
+		}
+		free(newImage);
+	}
+}
+
+int main(int argc, char **argv) {
+//error check command line arguments
 	if(argc < 3) {
 		fprintf(stderr, "usage: ./hw5 num_threads option [arg]\n");
 		exit(1);
@@ -140,7 +163,7 @@ int main(int argc, char **argv) {
 				fprintf(stderr, "usage: ./hw5 num_threads option [arg]\n");
 			}
 			break;
-
+//set flags for processing
 			case 2:
 			if(strcmp(argv[i], "-I") == 0) {
 				Invert = true;
@@ -172,7 +195,7 @@ int main(int argc, char **argv) {
 				exit(1);
 			}
 			break;
-
+//more cmd line error checking
 			case 3:
 			if(!(contrastPercent = atof(argv[i]))) {
 				fprintf(stderr, "usage: ./hw5 num_threads option [arg]\n");
@@ -291,7 +314,7 @@ int main(int argc, char **argv) {
 	}
 
 
-
+//perform threaded processing on image
 	if(Invert == true) {
 		for(j = 0; j < numThreads; j++) {
 			pthread_create(&threads[j], NULL, InvertImage, (void *) &threadSegments[j]);
@@ -341,4 +364,7 @@ int main(int argc, char **argv) {
 		}
 		outputImage();
 	}
+	freeMem();
+	free(threadSegments);
+	free(threads);
 }

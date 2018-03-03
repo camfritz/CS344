@@ -1,2 +1,2 @@
 all:
-	gcc -o hw5 hw5.c -pthread
+	gcc -o hw5 hw5.c -pthread -lm
