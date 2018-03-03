@@ -16,83 +16,15 @@ bool keepGreen = false;
 bool keepBlue = false;
 bool adjustContrast = false;
 
-int width, height, maxPixelValue, i, ***pixels, ***newImage, newHeight, newWidth;
+int width, height, maxPixelValue, i, j, ***pixels, ***newImage, newHeight, newWidth;
 char *buffer[100];
 
-void InvertImage() {
-	for(r = 0; r < height; r++) {
-		for(c = 0; c < width; c++) {
-			for(i = 0; i < 3; i++) {
-				pixels[r][c][i] = maxPixelValue - pixels[r][c][i];
-			}
-		}
-	}
-}
+typedef struct segment {
+	int start;
+	int end;
+} segment;
 
-void transformRed() {
-	for(r = 0; r < height; r++) {
-		for(c = 0; c < width; c++) {
-			pixels[r][c][0] = maxPixelValue - pixels[r][c][0];
-			pixels[r][c][1] = 0;
-			pixels[r][c][2] = 0;
-		}
-	}
-}
-
-void transformGreen() {
-	for(r = 0; r < height; r++) {
-		for(c = 0; c < width; c++) {
-			pixels[r][c][0] = 0;
-			pixels[r][c][1] = maxPixelValue - pixels[r][c][1];
-			pixels[r][c][2] = 0;
-		}
-	}
-}
-
-void transformBlue() {
-	for(r = 0; r < height; r++) {
-		for(c = 0; c < width; c++) {
-			pixels[r][c][0] = 0;
-			pixels[r][c][1] = 0;
-			pixels[r][c][2] = maxPixelValue - pixels[r][c][2];
-		}
-	}
-}
-
-void transformContrast() {
-	for(r = 0; r < height; r++) {
-		for(c = 0; c < width; c++) {
-			for(i = 0; i < 3; i++) {
-				if(pixels[r][c][i] <= (maxPixelValue / 2)) {
-					pixels[r][c][i] -= (maxPixelValue * contrastPercent);
-				}
-				else {
-					pixels[r][c][i] += (maxPixelValue * contrastPercent);
-				}
-			}
-		}
-	}
-}
-
-void transformLeft() {
-	for(r = 0; r < height; r++) {
-		for(c = 0; c < width; c++) {
-			for(i = 0; i < 3; i++) {
-				newImage[width - c - 1][r][i] = pixels[r][c][i];
-			}
-		}
-	}
-}
-
-void transformRight() {
-	for(r = 0; r < height; r++) {
-		for(c = 0; c < width; c++) {
-			for(i = 0; i < 3; i++) {
-				newImage[c][height - r - 1][i] = pixels[r][c][i];
-			}
-		}
-	}
-}
+segment *threadSegments;
 
 void outputImage() {
 	if(rotateLeft == true || rotateRight == true) {
@@ -106,6 +38,85 @@ void outputImage() {
 		for(r = 0; r < height; r++) {
 			for(c = 0; c < width; c++) {
 				fprintf(stdout, "%d %d %d\n", pixels[r][c][0], pixels[r][c][1], pixels[r][c][2]);
+			}
+		}
+	}
+}
+
+void *InvertImage(void *rows) {
+	struct segment *args = rows;
+	// fprintf(stderr, "STARTING ROW: %d\n", args->start);
+	// fprintf(stderr, "ENDING ROW: %d\n", args->end);
+	for(r = args->start; r < args->end; r++) {
+		for(c = 0; c < width; c++) {
+			for(i = 0; i < 3; i++) {
+				pixels[r][c][i] = maxPixelValue - pixels[r][c][i];
+			}
+		}
+	}
+	return NULL;
+}
+
+void *transformRed(void *startRow, void *endRow) {
+	for(r = startRow; r < endRow; r++) {
+		for(c = 0; c < width; c++) {
+			pixels[r][c][0] = maxPixelValue - pixels[r][c][0];
+			pixels[r][c][1] = 0;
+			pixels[r][c][2] = 0;
+		}
+	}
+}
+
+void *transformGreen(void *startRow, void *endRow) {
+	for(r = startRow; r < endRow; r++) {
+		for(c = 0; c < width; c++) {
+			pixels[r][c][0] = 0;
+			pixels[r][c][1] = maxPixelValue - pixels[r][c][1];
+			pixels[r][c][2] = 0;
+		}
+	}
+}
+
+void *transformBlue(void *startRow, void *endRow) {
+	for(r = startRow; r < endRow; r++) {
+		for(c = 0; c < width; c++) {
+			pixels[r][c][0] = 0;
+			pixels[r][c][1] = 0;
+			pixels[r][c][2] = maxPixelValue - pixels[r][c][2];
+		}
+	}
+}
+
+void *transformContrast(void *startRow, void *endRow) {
+	for(r = startRow; r < endRow; r++) {
+		for(c = 0; c < width; c++) {
+			for(i = 0; i < 3; i++) {
+				if(pixels[r][c][i] <= (maxPixelValue / 2)) {
+					pixels[r][c][i] -= (maxPixelValue * contrastPercent);
+				}
+				else {
+					pixels[r][c][i] += (maxPixelValue * contrastPercent);
+				}
+			}
+		}
+	}
+}
+
+void *transformLeft(void *startRow, void *endRow) {
+	for(r = startRow; r < endRow; r++) {
+		for(c = 0; c < width; c++) {
+			for(i = 0; i < 3; i++) {
+				newImage[width - c - 1][r][i] = pixels[r][c][i];
+			}
+		}
+	}
+}
+
+void *transformRight(void *startRow, void *endRow) {
+	for(r = startRow; r < endRow; r++) {
+		for(c = 0; c < width; c++) {
+			for(i = 0; i < 3; i++) {
+				newImage[c][height - r - 1][i] = pixels[r][c][i];
 			}
 		}
 	}
@@ -229,28 +240,82 @@ int main(int argc, char **argv) {
 	}
 	fprintf(stdout, "%d\n", maxPixelValue);
 
+	//allocate threads, determine processing segments
+	pthread_t *threads = (pthread_t *) malloc(sizeof(pthread_t) * numThreads);
+	threadSegments = (segment *) malloc(sizeof(segment) * numThreads);
+	int step, remaining;
+	if(rotateLeft == true || rotateRight == true) {
+		if(newHeight % numThreads != 0) {
+			step = floor(newHeight / numThreads);
+		}
+		else {
+			step = newHeight / numThreads;
+		}
+		remaining = newHeight;
+	}
+	else {
+		if(height % numThreads != 0) {
+			step = floor(height / numThreads);
+		}
+		else {
+			step = height / numThreads;
+		}
+		remaining = height;
+	}
+
+	for(j = 0; j < numThreads; j++) {
+		if(j == 0) {
+			threadSegments[j].start = 0;
+			if(remaining >= step) {
+				remaining -= step;
+				threadSegments[j].end += step;
+			}
+			else {
+				threadSegments[j].end = remaining;
+			}
+		}
+		else {
+			threadSegments[j].start = threadSegments[j - 1].end;
+			if(remaining >= step) {
+				remaining -= step;
+				threadSegments[j].end = threadSegments[j].start + step;
+			}
+			else {
+				threadSegments[j].end = threadSegments[j].start + remaining;
+			}
+		}
+	}
+
+
 
 	if(Invert == true) {
-		InvertImage();
+		for(j = 0; j < numThreads; j++) {
+			fprintf(stderr, "START: %d\n", threadSegments[j].start);
+			fprintf(stderr, "END: %d\n", threadSegments[j].end);
+			pthread_create(&threads[j], NULL, InvertImage, (void *) &threadSegments[j]);
+			pthread_join(threads[j], NULL);
+		}
+		outputImage();
+		//InvertImage(0, height);
 	}
-	else if(keepRed == true) {
-		transformRed();
-	}
-	else if(keepGreen == true) {
-		transformGreen();
-	}
-	else if(keepBlue == true) {
-		transformBlue();
-	}
-	else if(adjustContrast == true) {
-		transformContrast();
-	}
-	else if(rotateLeft == true) {
-		transformLeft();
-	}
-	else if(rotateRight == true) {
-		transformRight();
-	}
+	// else if(keepRed == true) {
+	// 	transformRed(0, height);
+	// }
+	// else if(keepGreen == true) {
+	// 	transformGreen(0, height);
+	// }67678i
+	// else if(keepBlue == true) {
+	// 	transformBlue(0, height);
+	// }
+	// else if(adjustContrast == true) {
+	// 	transformContrast(0, height);
+	// }
+	// else if(rotateLeft == true) {
+	// 	transformLeft(0, height);
+	// }
+	// else if(rotateRight == true) {
+	// 	transformRight(0, height);
+	// }
 
-	outputImage();
+	// outputImage(0, newHeight);
 }
