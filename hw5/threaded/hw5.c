@@ -45,8 +45,6 @@ void outputImage() {
 
 void *InvertImage(void *rows) {
 	struct segment *args = rows;
-	// fprintf(stderr, "STARTING ROW: %d\n", args->start);
-	// fprintf(stderr, "ENDING ROW: %d\n", args->end);
 	for(r = args->start; r < args->end; r++) {
 		for(c = 0; c < width; c++) {
 			for(i = 0; i < 3; i++) {
@@ -57,8 +55,9 @@ void *InvertImage(void *rows) {
 	return NULL;
 }
 
-void *transformRed(void *startRow, void *endRow) {
-	for(r = startRow; r < endRow; r++) {
+void *transformRed(void *rows) {
+	struct segment *args = rows;
+	for(r = args->start; r < args->end; r++) {
 		for(c = 0; c < width; c++) {
 			pixels[r][c][0] = maxPixelValue - pixels[r][c][0];
 			pixels[r][c][1] = 0;
@@ -67,8 +66,9 @@ void *transformRed(void *startRow, void *endRow) {
 	}
 }
 
-void *transformGreen(void *startRow, void *endRow) {
-	for(r = startRow; r < endRow; r++) {
+void *transformGreen(void *rows) {
+	struct segment *args = rows;
+	for(r = args->start; r < args->end; r++) {
 		for(c = 0; c < width; c++) {
 			pixels[r][c][0] = 0;
 			pixels[r][c][1] = maxPixelValue - pixels[r][c][1];
@@ -77,8 +77,9 @@ void *transformGreen(void *startRow, void *endRow) {
 	}
 }
 
-void *transformBlue(void *startRow, void *endRow) {
-	for(r = startRow; r < endRow; r++) {
+void *transformBlue(void *rows) {
+	struct segment *args = rows;
+	for(r = args->start; r < args->end; r++) {
 		for(c = 0; c < width; c++) {
 			pixels[r][c][0] = 0;
 			pixels[r][c][1] = 0;
@@ -87,8 +88,9 @@ void *transformBlue(void *startRow, void *endRow) {
 	}
 }
 
-void *transformContrast(void *startRow, void *endRow) {
-	for(r = startRow; r < endRow; r++) {
+void *transformContrast(void *rows) {
+	struct segment *args = rows;
+	for(r = args->start; r < args->end; r++) {
 		for(c = 0; c < width; c++) {
 			for(i = 0; i < 3; i++) {
 				if(pixels[r][c][i] <= (maxPixelValue / 2)) {
@@ -102,8 +104,9 @@ void *transformContrast(void *startRow, void *endRow) {
 	}
 }
 
-void *transformLeft(void *startRow, void *endRow) {
-	for(r = startRow; r < endRow; r++) {
+void *transformLeft(void *rows) {
+	struct segment *args = rows;
+	for(r = args->start; r < args->end; r++) {
 		for(c = 0; c < width; c++) {
 			for(i = 0; i < 3; i++) {
 				newImage[width - c - 1][r][i] = pixels[r][c][i];
@@ -112,11 +115,12 @@ void *transformLeft(void *startRow, void *endRow) {
 	}
 }
 
-void *transformRight(void *startRow, void *endRow) {
-	for(r = startRow; r < endRow; r++) {
+void *transformRight(void *rows) {
+	struct segment *args = rows;
+	for(r = args->start; r < args->end; r++) {
 		for(c = 0; c < width; c++) {
 			for(i = 0; i < 3; i++) {
-				newImage[c][height - r - 1][i] = pixels[r][c][i];
+				newImage[c][width - r - 1][i] = pixels[r][c][i];
 			}
 		}
 	}
@@ -245,13 +249,13 @@ int main(int argc, char **argv) {
 	threadSegments = (segment *) malloc(sizeof(segment) * numThreads);
 	int step, remaining;
 	if(rotateLeft == true || rotateRight == true) {
-		if(newHeight % numThreads != 0) {
-			step = floor(newHeight / numThreads);
+		if(height % numThreads != 0) {
+			step = floor(height / numThreads);
 		}
 		else {
-			step = newHeight / numThreads;
+			step = height / numThreads;
 		}
-		remaining = newHeight;
+		remaining = height;
 	}
 	else {
 		if(height % numThreads != 0) {
@@ -290,32 +294,51 @@ int main(int argc, char **argv) {
 
 	if(Invert == true) {
 		for(j = 0; j < numThreads; j++) {
-			fprintf(stderr, "START: %d\n", threadSegments[j].start);
-			fprintf(stderr, "END: %d\n", threadSegments[j].end);
 			pthread_create(&threads[j], NULL, InvertImage, (void *) &threadSegments[j]);
 			pthread_join(threads[j], NULL);
 		}
 		outputImage();
-		//InvertImage(0, height);
 	}
-	// else if(keepRed == true) {
-	// 	transformRed(0, height);
-	// }
-	// else if(keepGreen == true) {
-	// 	transformGreen(0, height);
-	// }67678i
-	// else if(keepBlue == true) {
-	// 	transformBlue(0, height);
-	// }
-	// else if(adjustContrast == true) {
-	// 	transformContrast(0, height);
-	// }
-	// else if(rotateLeft == true) {
-	// 	transformLeft(0, height);
-	// }
-	// else if(rotateRight == true) {
-	// 	transformRight(0, height);
-	// }
-
-	// outputImage(0, newHeight);
+	else if(keepRed == true) {
+		for(j = 0; j < numThreads; j++) {
+			pthread_create(&threads[j], NULL, transformRed, (void *) &threadSegments[j]);
+			pthread_join(threads[j], NULL);
+		}
+		outputImage();
+	}
+	else if(keepGreen == true) {
+		for(j = 0; j < numThreads; j++) {
+			pthread_create(&threads[j], NULL, transformGreen, (void *) &threadSegments[j]);
+			pthread_join(threads[j], NULL);
+		}
+		outputImage();
+	}
+	else if(keepBlue == true) {
+		for(j = 0; j < numThreads; j++) {
+			pthread_create(&threads[j], NULL, transformBlue, (void *) &threadSegments[j]);
+			pthread_join(threads[j], NULL);
+		}
+		outputImage();
+	}
+	else if(adjustContrast == true) {
+		for(j = 0; j < numThreads; j++) {
+			pthread_create(&threads[j], NULL, transformContrast, (void *) &threadSegments[j]);
+			pthread_join(threads[j], NULL);
+		}
+		outputImage();
+	}
+	else if(rotateLeft == true) {
+		for(j = 0; j < numThreads; j++) {
+			pthread_create(&threads[j], NULL, transformLeft, (void *) &threadSegments[j]);
+			pthread_join(threads[j], NULL);
+		}
+		outputImage();
+	}
+	else if(rotateRight == true) {
+		for(j = 0; j < numThreads; j++) {
+			pthread_create(&threads[j], NULL, transformRight, (void *) &threadSegments[j]);
+			pthread_join(threads[j], NULL);
+		}
+		outputImage();
+	}
 }
