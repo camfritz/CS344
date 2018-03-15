@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import socket
 import sys
 import threading
@@ -39,9 +41,6 @@ def handleTransaction(line):
 		elif(transactionType == 'debit' or transactionType == 'Debit'):
 			accounts[name] = -amount
 	mut.release()
-
-	# for key, value in accounts.items():
-	# 	print key + ' : ' + str(value)
 
 def acquireTransaction(conn):
 	while(True):
