@@ -20,8 +20,8 @@ try:
 	for line in inputFile:
 		s.send(line)
 
-	response = s.recv(100)
-	print('Server sent: ' + response)
+	# response = s.recv(100)
+	# print('Server sent: ' + response)
 	s.close()
 
 except Exception as e:

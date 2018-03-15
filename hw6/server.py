@@ -1,11 +1,47 @@
 import socket
 import sys
 import threading
+import signal
 
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 mut = threading.Lock()
 portNumber = int(sys.argv[1])
 accounts = {}
-transactionArray = []
+threads = []
+
+def handleSignal(signal, arg):
+	for thread in threads:
+		thread.join()
+	file = open('log.txt', 'w')
+	for key, value in accounts.items():
+		file.writelines('Name: ' + key +', ' + 'Balance: ' + str(value) + '\n')
+	file.close()
+	s.close()
+	exit(1)
+
+def handleTransaction(line):
+	transactionArray = []
+	transactionArray = line.split()
+
+	name = transactionArray[0]
+	transactionType = transactionArray[1]
+	amount = float(transactionArray[2][1:])
+
+	mut.acquire()
+	if name in accounts.keys():
+		if(transactionType == 'credit' or transactionType == 'Credit'):
+			accounts[name] += amount
+		elif(transactionType == 'debit' or transactionType == 'Debit'):
+			accounts[name] -= amount
+	else:
+		if(transactionType == 'credit' or transactionType == 'Credit'):
+			accounts[name] = amount
+		elif(transactionType == 'debit' or transactionType == 'Debit'):
+			accounts[name] = -amount
+	mut.release()
+
+	# for key, value in accounts.items():
+	# 	print key + ' : ' + str(value)
 
 def acquireTransaction(conn):
 	while(True):
@@ -16,48 +52,21 @@ def acquireTransaction(conn):
 		while(data != '\n'):
 			transactionLine += data
 			data = conn.recv(1)
-		print(transactionLine)
+		handleTransaction(transactionLine)
+	print('OK\n')
+	conn.close()
 
 #Create server socket
+signal.signal(signal.SIGINT, handleSignal)
 try:
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.bind(('127.0.0.1', portNumber))
 	while(1):
 		s.listen(5)
 
 		(conn, addr) = s.accept()
 		t = threading.Thread(target=acquireTransaction, args=(conn,))
+		threads.append(t)
 		t.start()
-		t.join()
-
-		# transactionArray = transactionLine.split()
-		# print('Name: ' + transactionArray[0])
-		# print('Type: ' + transactionArray[1])
-		# print('Amount: ' + transactionArray[2] + '\n')
-
-		# name = transactionArray[0]
-		# transactionType = transactionArray[1]
-		# amount = float(transactionArray[2][1:])
-
-
-		# if name in accounts.keys():
-		# 	if(transactionType == 'credit' or transactionType == 'Credit'):
-		# 		accounts[name] += amount
-		# 	elif(transactionType == 'debit' or transactionType == 'Debit'):
-		# 		accounts[name] -= amount
-		# else:
-		# 	if(transactionType == 'credit' or transactionType == 'Credit'):
-		# 		accounts[name] = amount
-		# 	elif(transactionType == 'debit' or transactionType == 'Debit'):
-		# 		accounts[name] = -amount
-
-		# for key, value in accounts.items():
-		# 	print key + ' : ' + str(value)
-
-		conn.send('OK\n')
-		conn.close()
-
-	s.close()
 
 except Exception as e:
 	print(e)
