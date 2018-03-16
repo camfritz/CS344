@@ -15,7 +15,7 @@ def handleSignal(signal, arg):
 	for thread in threads:
 		thread.join()
 	file = open('log.txt', 'w')
-	for key, value in accounts.items():
+	for key, value in sorted(accounts.items()):
 		file.writelines('Name: ' + key +', ' + 'Balance: ' + str(value) + '\n')
 	file.close()
 	s.close()
@@ -27,7 +27,11 @@ def handleTransaction(line):
 
 	name = transactionArray[0]
 	transactionType = transactionArray[1]
-	amount = float(transactionArray[2][1:])
+
+	if(transactionArray[2][0] == '$'):
+		amount = float(transactionArray[2][1:])
+	else:
+		amount = float(transactionArray[2])
 
 	mut.acquire()
 	if name in accounts.keys():
