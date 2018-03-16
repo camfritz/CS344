@@ -19,6 +19,7 @@ try:
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.connect(('127.0.0.1', portNumber))
 
+#send transactions to server
 	for line in inputFile:
 		s.send(line)
 

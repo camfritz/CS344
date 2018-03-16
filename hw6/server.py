@@ -5,12 +5,14 @@ import sys
 import threading
 import signal
 
+#create global server socket, mutex, port number, accounts dictionary, and threads array
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 mut = threading.Lock()
 portNumber = int(sys.argv[1])
 accounts = {}
 threads = []
 
+#Handles the interrupt SIGINT signal, join all threads, write to file and close server socket
 def handleSignal(signal, arg):
 	for thread in threads:
 		thread.join()
@@ -21,6 +23,7 @@ def handleSignal(signal, arg):
 	s.close()
 	exit(1)
 
+#Parse each line and handle the transaction accordingly
 def handleTransaction(line):
 	transactionArray = []
 	transactionArray = line.split()
@@ -33,6 +36,7 @@ def handleTransaction(line):
 	else:
 		amount = float(transactionArray[2])
 
+#Acquire the mutex, modify global data dictionary, release mutex when finished
 	mut.acquire()
 	if name in accounts.keys():
 		if(transactionType == 'credit' or transactionType == 'Credit'):
@@ -46,6 +50,7 @@ def handleTransaction(line):
 			accounts[name] = -amount
 	mut.release()
 
+#Recieve each character of a line until a newline character is reached. Call the transaction handler, close connection at the end of file
 def acquireTransaction(conn):
 	while(True):
 		data = conn.recv(1)
@@ -66,6 +71,7 @@ try:
 	while(1):
 		s.listen(5)
 
+#create threads for each client
 		(conn, addr) = s.accept()
 		t = threading.Thread(target=acquireTransaction, args=(conn,))
 		threads.append(t)
